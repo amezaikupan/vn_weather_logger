@@ -11,6 +11,7 @@ for i in range(2, 74):
             soup = BeautifulSoup(resp.content, 'lxml')
             title = soup.find('h1', class_='tt-news')
             data['location'] = title.text.strip() if title else None
+            print(data)
             results.append(data)
         sleep(2)
     except: pass
