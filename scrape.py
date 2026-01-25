@@ -18,7 +18,7 @@ def parse_weather(html):
 
 url_base = "https://nchmf.gov.vn/kttvsiteE/vi-VN/1/sai-gon-tp-ho-chi-minh-w{}.html"
 results = []
-for i in range(2, 74):
+for i in range(2, 65):
     try:
         resp = httpx.get(url_base.format(i), timeout=10)
         print(f"Location {i}: {resp.status_code}")
