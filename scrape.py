@@ -5,6 +5,7 @@ results = []
 for i in range(2, 74):
     try:
         resp = httpx.get(url_base.format(i), timeout=10)
+        print(resp)
         if resp.status_code == 200:
             data = parse_weather(resp.content)
             data['location_id'] = i
