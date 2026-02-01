@@ -4,10 +4,18 @@ import httpx
 import pandas as pd
 from bs4 import BeautifulSoup
 
-def parse_weather(html):
+def parse_weather(html, location_id):
     soup = BeautifulSoup(html, 'lxml')
-    data = {}
-    data['update_time'] = soup.find('div', class_='time-update').text.split('Cập nhật:')[1].strip()
+    data = {'location_id': location_id}
+    
+    # Get location title
+    title = soup.find('h1', class_='tt-news')
+    data['location'] = title.text.strip() if title else None
+    
+    # Get update time and weather data
+    update_div = soup.find('div', class_='time-update')
+    data['update_time'] = update_div.text.split('Cập nhật:')[1].strip() if update_div else None
+    
     for li in soup.find('ul', class_='list-info-wt').find_all('li'):
         divs = li.find_all('div', class_='uk-width-3-4')
         if divs: 
@@ -18,23 +26,29 @@ def parse_weather(html):
 
 url_base = "https://nchmf.gov.vn/kttvsiteE/vi-VN/1/sai-gon-tp-ho-chi-minh-w{}.html"
 results = []
+
 for i in range(2, 65):
     try:
         resp = httpx.get(url_base.format(i), timeout=10)
         print(f"Location {i}: {resp.status_code}")
+        
         if resp.status_code == 200:
-            data = parse_weather(resp.content)
-            data['location_id'] = i
-            soup = BeautifulSoup(resp.content, 'lxml')
-            title = soup.find('h1', class_='tt-news')
-            data['location'] = title.text.strip() if title else None
+            data = parse_weather(resp.content, i)
             results.append(data)
             print(f"  -> {data['location']}")
-        sleep(2)
-    except Exception as e: print(f"  Error: {e}")
+            sleep(2)
+    except Exception as e: 
+        print(f"  Error: {e}")
 
 df = pd.DataFrame(results)
-timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-filename = f'vn_weather_{timestamp}.csv'
-df.to_csv(filename, index=False)
-print(f"Saved {len(results)} locations to {filename}")
+filename = f'{datetime.now().year}_vn_weather.csv'
+
+try:
+    existing = pd.read_csv(filename)
+    combined = pd.concat([existing, df], ignore_index=True)
+    combined = combined.drop_duplicates()
+    combined.to_csv(filename, index=False)
+    print(f"Added {len(df)} records, {len(combined)} total after removing duplicates")
+except FileNotFoundError:
+    df.to_csv(filename, index=False)
+    print(f"Created new file with {len(df)} records")
