@@ -17,7 +17,7 @@ jobs:
       with:
         python-version: '3.11'
     - name: Install dependencies
-      run: pip install httpx beautifulsoup4 lxml pandas
+      run: pip install httpx beautifulsoup4 lxml pandas fastparquet
     - name: Scrape data
       run: python scrape.py
     - name: Commit and push if changed
