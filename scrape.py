@@ -41,14 +41,14 @@ for i in range(2, 65):
         print(f"  Error: {e}")
 
 df = pd.DataFrame(results)
-filename = f'{datetime.now().year}_vn_weather.csv'
+filename = f'{datetime.now().year}_vn_weather.parquet'
 
 try:
-    existing = pd.read_csv(filename)
+    existing = pd.read_parquet(filename)
     combined = pd.concat([existing, df], ignore_index=True)
     combined = combined.drop_duplicates()
-    combined.to_csv(filename, index=False)
+    combined.to_parquet(filename, index=False)
     print(f"Added {len(df)} records, {len(combined)} total after removing duplicates")
 except FileNotFoundError:
-    df.to_csv(filename, index=False)
+    df.to_parquet(filename, index=False)
     print(f"Created new file with {len(df)} records")
